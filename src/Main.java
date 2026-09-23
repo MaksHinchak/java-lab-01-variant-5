@@ -1,176 +1,107 @@
-import java.util.Arrays; // Arrays.toString форматує одновимірні масиви для друку.
-import java.util.regex.Matcher; // Matcher послідовно знаходить слова, зберігаючи їхні позиції.
-import java.util.regex.Pattern; // Pattern описує правило пошуку літер Unicode.
-// class описує тип об’єктів; new створює конкретний об’єкт і викликає його конструктор. public робить клас
-// доступним ззовні; final у заголовку класу, якщо він є, забороняє створювати підкласи, але сам по собі не робить
-// поля незмінними.
-public class Main { // Лабораторна 1: чотири незалежні задачі варіанта 5.
-    // static означає, що метод належить класу: його можна викликати без створення об’єкта. public дозволяє виклик
-    // з інших класів, private обмежує використання цим класом; тип перед назвою задає результат, а void означає
-    // відсутність значення для повернення.
-    public static double expression(double x, double y) { // Обчислюємо xy + (x+y)^3/(x^2+y^2)*(x-y).
-        // x * x + y * y — сума квадратів. Для звичайних значень вона нульова лише при x=y=0; для надзвичайно малих
-        // double добутки також можуть округлитися до нуля, тому перевіряємо саме обчислений знаменник.
-        double denominator = x * x + y * y; // Знаменник дорівнює сумі квадратів.
-        // throw — аналог raise у Python: негайно припиняємо звичайний хід методу й передаємо об’єкт помилки
-        // найближчому відповідному catch. new створює виняток, а текст конструктора пояснює причину користувачу.
-        if (denominator == 0) throw new ArithmeticException("x та y не можуть одночасно бути нулями."); // Перевіряємо область визначення.
-        // Math.pow(x + y, 3) — піднесення до куба, аналог (x+y)**3 у Python. Символ ^ у Java означав би побітове
-        // XOR, а не степінь. Множення й ділення виконуються зліва направо; дужки зберігають порядок із формули.
-        double value = x * y + Math.pow(x + y, 3) / denominator * (x - y); // Дужки відтворюють формулу з PDF.
-        // Double.isFinite(...) повертає true лише для звичайного скінченного числа; ! заперечує результат. double
-        // може містити NaN («не число») і ±Infinity, тому успішний parseDouble ще не гарантує придатність числа
-        // для формули. У Python аналог — math.isfinite(x); ця перевірка не перевіряє точність округлення.
-        if (!Double.isFinite(value)) throw new ArithmeticException("Числа завеликі для double."); // Виявляємо числове переповнення.
-        return value; // Передаємо обчислений результат виклику.
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+public class Main {
+    // static — виклик без об’єкта; public — доступ ззовні, private — лише в класі; void — без результату.
+    public static double expression(double x, double y) {
+        double denominator = x * x + y * y;
+        if (denominator == 0) throw new ArithmeticException("x та y не можуть одночасно бути нулями.");
+        double value = x * y + Math.pow(x + y, 3) / denominator * (x - y);
+        // Double.isFinite відкидає NaN та ±Infinity; ! заперечує перевірку.
+        if (!Double.isFinite(value)) throw new ArithmeticException("Числа завеликі для double.");
+        return value;
     }
-    public static double[] averages(double[] a) { // Кожен елемент результату є середнім усіх a, крім поточного.
-        // .length — незмінне поле масиву, тому пишеться без дужок, аналог len(a). Останній індекс — length - 1. Не
-        // плутати: для String потрібен метод length(), а для ArrayList — size().
-        if (a.length < 2 || a.length > 200) throw new IllegalArgumentException("Потрібно 2..200 чисел."); // Для одного елемента середнє решти не визначене.
-        // new тип[...] створює масив фіксованої довжини: додати елемент через append, як у Python list, не можна.
-        // Числові клітинки без явних значень спочатку дорівнюють 0, boolean — false, а посилання на об’єкти —
-        // null. Індекси починаються з 0; вихід за межі спричиняє виняток.
-        double[] b = new double[a.length]; // Створюємо новий масив, не змінюючи вхідний.
-        // У for спочатку один раз задається лічильник, перед кожним проходом перевіряється умова, а після проходу
-        // виконується i++ або j++. Умова i < n відповідає Python range(n): значення n вже не входить у цикл.
-        for (int i = 0; i < a.length; i++) { // Обчислюємо результат окремо для кожного індексу i.
-            for (int j = 0; j < a.length; j++) { // Переглядаємо всі можливі доданки.
-                // b[i] починається з 0 завдяки new double[]. += додає черговий внесок до вже накопиченого
-                // значення; j != i відкидає поточний елемент. a[j] має тип double, тому ділення на ціле n-1
-                // лишається дробовим, на відміну від int/int у Java.
-                if (j != i) b[i] += a[j] / (a.length - 1); // Пропускаємо a[i]; попереднє ділення зменшує ризик переповнення суми.
+    public static double[] averages(double[] a) {
+        // .length — довжина масиву без дужок; для String — length(), для колекції — size().
+        if (a.length < 2 || a.length > 200) throw new IllegalArgumentException("Потрібно 2..200 чисел.");
+        // new тип[n] — масив незмінної довжини; числові елементи спочатку 0, посилання — null.
+        double[] b = new double[a.length];
+        // for (початок; умова; крок); i++ збільшує лічильник після проходу.
+        for (int i = 0; i < a.length; i++) {
+            for (int j = 0; j < a.length; j++) {
+                if (j != i) b[i] += a[j] / (a.length - 1);
             }
         }
-        return b; // Повертаємо всі середні значення; складність O(n^2), пам'ять O(n).
+        return b;
     }
-    public static int[] compareRows(double[][] a, double[][] b) { // Для кожного рядка перевіряємо строгі попарні нерівності A > B.
-        int[] result = new int[a.length]; // Початково вектор заповнений нулями.
-        for (int i = 0; i < a.length; i++) { // Зовнішній цикл перебирає рядки.
-            result[i] = 1; // Спочатку припускаємо, що всі нерівності істинні.
-            for (int j = 0; j < a[i].length; j++) { // Внутрішній цикл перебирає стовпці поточного рядка.
-                // Для відповіді 1 потрібні правильні порівняння В УСІХ стовпцях. Після першого порушення 0 більше
-                // не змінюється на 1, навіть якщо наступна пара підходить; рівність також є порушенням строгого A
-                // > B.
-                if (a[i][j] <= b[i][j]) result[i] = 0; // Навіть одна рівність або менше значення спростовує умову.
+    public static int[] compareRows(double[][] a, double[][] b) {
+        int[] result = new int[a.length];
+        for (int i = 0; i < a.length; i++) {
+            result[i] = 1;
+            for (int j = 0; j < a[i].length; j++) {
+                if (a[i][j] <= b[i][j]) result[i] = 0;
             }
         }
-        return result; // Складність для квадратних матриць O(n^2).
+        return result;
     }
-    public static String transform(String text) { // Вилучаємо попередні входження останньої літери кожного слова.
-        // Pattern.compile готує правило пошуку, аналог re.compile у Python, а matcher(text) прив’язує його до
-        // конкретного тексту. \p{L}+ означає одну або більше Unicode-літер: українські літери теж підходять, цифри
-        // й пунктуація розділяють слова. Подвійна риска потрібна через екранування Java-рядка.
-        Matcher matcher = Pattern.compile("\\p{L}+").matcher(text); // Слово тут є неперервною послідовністю літер Unicode.
-        // String незмінний: повторне склеювання рядків створювало б нові проміжні рядки. StringBuilder накопичує
-        // частини у змінному буфері, а toString() наприкінці дає готовий String; за задумом це близько до списку
-        // частин і "".join(parts) у Python.
-        StringBuilder result = new StringBuilder(); // Збираємо змінений текст без багаторазового копіювання рядків.
-        int end = 0; // Позиція після попереднього опрацьованого слова.
-        // find() переходить до наступного збігу й повертає boolean, поки слова не закінчаться. Це схоже на перебір
-        // re.finditer(text); matcher пам’ятає поточний збіг для group(), start() та end().
-        while (matcher.find()) { // Шукаємо чергове слово в початковому тексті.
-            // start() — індекс початку поточного слова. append(text, end, start) копіює проміжок [end, start),
-            // тобто від end включно до start невключно; це аналог text[end:start] у Python і спосіб зберегти
-            // пробіли та пунктуацію.
-            result.append(text, end, matcher.start()); // Копіюємо розділові знаки й пробіли без змін.
-            // group() дає знайдене слово, codePoints() — послідовність цілих Unicode-кодів, а toArray() збирає її
-            // в int[]. Java String зберігає UTF-16, де одна кодова точка іноді займає два char; codePoints не
-            // розриває таку пару. Близький Python-вираз — [ord(c) for c in word]. Це потік даних IntStream, НЕ
-            // окремий потік виконання; складений видимий символ усе ще може містити кілька кодових точок.
-            int[] letters = matcher.group().codePoints().toArray(); // Працюємо з Unicode-кодами, а не половинами сурогатних пар.
-            // Шаблон + гарантує хоча б одну літеру в знайденому слові, тому length - 1 тут безпечний. Зберігаємо
-            // саме код останньої літери для порівняння, а не її позицію.
-            int last = letters[letters.length - 1]; // Запам'ятовуємо останню літеру поточного слова.
-            // До останньої літери цикл не доходить: вона має залишитися незалежно від повторів. Для однолітерного
-            // слова цикл пропускається, але appendCodePoint(last) нижче все одно додасть цю єдину літеру.
-            for (int i = 0; i < letters.length - 1; i++) { // Перевіряємо лише літери до останньої.
-                // appendCodePoint сприймає int як код Unicode і додає відповідний символ, за потреби два UTF-16
-                // char. Звичайний append(int) додав би десяткові цифри числа, наприклад "1072", замість літери;
-                // задум близький до додавання chr(code) у Python.
-                if (letters[i] != last) result.appendCodePoint(letters[i]); // Зберігаємо літери, які точно не збігаються з останньою; регістр враховується.
+    public static String transform(String text) {
+        // Pattern — regex; matcher(text) створює пошук у тексті; \p{L}+ знаходить Unicode-літери.
+        Matcher matcher = Pattern.compile("\\p{L}+").matcher(text);
+        // StringBuilder — змінний буфер тексту; append додає частини, toString дає готовий String.
+        StringBuilder result = new StringBuilder();
+        int end = 0;
+        // find переходить до наступного збігу; group дає текст, start/end — його межі.
+        while (matcher.find()) {
+            // append(text, від, до) копіює проміжок із невключною правою межею.
+            result.append(text, end, matcher.start());
+            // codePoints().toArray() дає int[] кодів Unicode, не окремі UTF-16 char; це не потік виконання.
+            int[] letters = matcher.group().codePoints().toArray();
+            int last = letters[letters.length - 1];
+            for (int i = 0; i < letters.length - 1; i++) {
+                // appendCodePoint додає символ за Unicode-кодом; append(int) додав би цифри числа.
+                if (letters[i] != last) result.appendCodePoint(letters[i]);
             }
-            result.appendCodePoint(last); // Остання літера завжди залишається.
-            // end() — індекс одразу після слова, як виключна права межа зрізу Python. Позиції matcher рахуються в
-            // одиницях UTF-16; substring і append з індексами користуються тими самими одиницями, тому межі
-            // узгоджені навіть для сурогатних пар.
-            end = matcher.end(); // Оновлюємо межу вже опрацьованого тексту.
+            result.appendCodePoint(last);
+            end = matcher.end();
         }
-        // substring(end) бере все після останнього слова, аналог text[end:]. append повертає той самий
-        // StringBuilder, тому можна відразу викликати toString(); без цього хвостові пробіли й пунктуація
-        // загубилися б.
-        return result.append(text.substring(end)).toString(); // Додаємо хвіст після останнього слова.
+        return result.append(text.substring(end)).toString();
     }
-    private static double[][] matrix(String name, int n) { // Читаємо квадратну матрицю заданого розміру.
-        // double[][] — масив рядків, кожен рядок теж масив; new double[n][n] створює окремий рядок для кожного
-        // індексу. a[i][j] означає рядок i, стовпець j. На відміну від Python [[0]*n]*n, тут рядки не посилаються
-        // на один спільний список.
-        double[][] values = new double[n][n]; // Виділяємо n рядків по n елементів.
-        for (int i = 0; i < n; i++) { // Перебираємо рядки, індексація починається з нуля.
-            for (int j = 0; j < n; j++) values[i][j] = Input.real(name + "[" + i + "][" + j + "]= "); // Читаємо одну клітинку.
+    private static double[][] matrix(String name, int n) {
+        // double[][] — масив окремих рядків; індекси [рядок][стовпець].
+        double[][] values = new double[n][n];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) values[i][j] = Input.real(name + "[" + i + "][" + j + "]= ");
         }
-        return values; // Повертаємо заповнену матрицю.
+        return values;
     }
-    // public дозволяє Java знайти точку входу; static означає виклик без new Main(); void означає, що метод не
-    // повертає значення. String[] args — масив аргументів запуску без назви програми (на відміну від Python
-    // sys.argv). Тут починається виконання, приблизно як у блоці if __name__ == "__main__" у Python.
-    public static void main(String[] args) { // JVM починає виконання з цього методу.
-        try { // Помилки області визначення показуємо зрозумілим текстом.
-            int task = Input.integer("Завдання (1 - вираз, 2 - масив, 3 - матриці, 4 - текст): ", 1, 4); // Вибираємо одну з чотирьох задач.
-            // switch вибирає гілку за значенням. У формі зі стрілками -> виконується лише вибрана гілка й break не
-            // потрібен; випадкового переходу до наступного case немає. Це схоже на простий Python match, але тут
-            // порівнюються конкретні значення.
-            switch (task) { // Виконуємо тільки вибрану гілку.
-                // Стрілка відділяє значення case від його дії чи результату. Фігурні дужки об’єднують кілька
-                // команд у гілку; ця стрілка належить switch і не створює лямбда-функцію.
-                case 1 -> { // Демонструємо всі три поєднання типів з умови.
-                    double x = Input.real("Дійсне x: "); // Ввід double для першого і третього режимів.
-                    double y = Input.real("Дійсне y: "); // Другий аргумент формули.
-                    double result = expression(x, y); // Обчислюємо результат із дійсних аргументів.
-                    System.out.println("double -> double: " + result); // Перший режим не змінює тип результату.
-                    int ix = Input.integer("Ціле x: ", Integer.MIN_VALUE, Integer.MAX_VALUE); // Другий режим має окремі цілі вхідні дані.
-                    int iy = Input.integer("Ціле y: ", Integer.MIN_VALUE, Integer.MAX_VALUE); // Читаємо друге ціле число.
-                    // Java автоматично розширює int до double відповідно до параметрів expression. Усі значення
-                    // int точно подаються як double, тому формула починає дробову арифметику без окремого ручного
-                    // приведення.
-                    System.out.println("int -> double: " + expression(ix, iy)); // Розширення int до double відбувається до арифметики.
-                    // Умова ? значення_якщо_так : значення_якщо_ні — короткий вибір одного з двох значень, аналог
-                    // a if condition else b у Python. Обчислюється лише вибрана частина, тому інший конструктор чи
-                    // виклик тут не виконується.
-                    // Для додатного результату floor прибирає дробову частину вниз, для від’ємного ceil — угору,
-                    // тобто обидва дають рух до нуля. Це копія майбутнього результату cast, потрібна, щоб
-                    // порівняти з межами int ДО самого перетворення.
-                    double truncated = result < 0 ? Math.ceil(result) : Math.floor(result); // Відкидаємо дробову частину в напрямку нуля.
-                    // Cast double → int за виходу за діапазон не кидає виняток, а дає найближчу межу int; NaN
-                    // перетворився б на 0. Тут нескінченність і NaN вже відхилив expression, а ця перевірка не
-                    // дозволяє мовчки втратити завеликий результат.
-                    if (truncated < Integer.MIN_VALUE || truncated > Integer.MAX_VALUE) throw new ArithmeticException("Результат не вміщується в int."); // Не допускаємо мовчазного насичення під час cast.
-                    // (int) — явне перетворення на 32-бітне ціле: дробова частина відкидається до нуля, наприклад
-                    // 3.9 → 3 і -3.9 → -3. Це не округлення до найближчого. Як int(x) для звичайних скінченних
-                    // Python float, але Java int має межі, тоді як Python int може зростати.
-                    System.out.println("double -> int: " + (int) result); // Явне звуження дає третій режим обчислення.
+    // main — точка входу; String[] args містить аргументи запуску без назви програми.
+    public static void main(String[] args) {
+        try {
+            int task = Input.integer("Завдання (1 - вираз, 2 - масив, 3 - матриці, 4 - текст): ", 1, 4);
+            // switch зі стрілками -> виконує лише вибрану гілку; break не потрібен.
+            switch (task) {
+                case 1 -> {
+                    double x = Input.real("Дійсне x: ");
+                    double y = Input.real("Дійсне y: ");
+                    double result = expression(x, y);
+                    System.out.println("double -> double: " + result);
+                    int ix = Input.integer("Ціле x: ", Integer.MIN_VALUE, Integer.MAX_VALUE);
+                    int iy = Input.integer("Ціле y: ", Integer.MIN_VALUE, Integer.MAX_VALUE);
+                    System.out.println("int -> double: " + expression(ix, iy));
+                    // умова ? a : b — вибір значення: a, якщо true, інакше b.
+                    double truncated = result < 0 ? Math.ceil(result) : Math.floor(result);
+                    if (truncated < Integer.MIN_VALUE || truncated > Integer.MAX_VALUE) throw new ArithmeticException("Результат не вміщується в int.");
+                    // (int) відкидає дробову частину до нуля; int обмежений 32 бітами.
+                    System.out.println("double -> int: " + (int) result);
                 }
-                case 2 -> { // Задача про середні арифметичні без поточного елемента.
-                    int n = Input.integer("Кількість елементів (2..200): ", 2, 200); // Обмежуємо довжину за умовою та областю визначення.
-                    double[] a = new double[n]; // Виділяємо пам'ять для вхідного масиву.
-                    for (int i = 0; i < n; i++) a[i] = Input.real("a[" + i + "]= "); // Заповнюємо всі елементи.
-                    // Arrays.toString будує читабельний рядок на кшталт [1.0, 2.0]. Звичайний друк масиву в Java
-                    // не показує його елементи, як Python print(list), тому тут потрібен окремий метод.
-                    System.out.println("B = " + Arrays.toString(averages(a))); // Друкуємо побудований масив.
+                case 2 -> {
+                    int n = Input.integer("Кількість елементів (2..200): ", 2, 200);
+                    double[] a = new double[n];
+                    for (int i = 0; i < n; i++) a[i] = Input.real("a[" + i + "]= ");
+                    // Arrays.toString друкує елементи; звичайний println масиву їх не показує.
+                    System.out.println("B = " + Arrays.toString(averages(a)));
                 }
-                case 3 -> { // Задача про порівняння рядків двох матриць.
-                    int n = Input.integer("Розмір матриць (1..15): ", 1, 15); // Перевіряємо межу з методички.
-                    double[][] a = matrix("A", n); // Вводимо першу квадратну матрицю.
-                    double[][] b = matrix("B", n); // Вводимо другу матрицю такого самого розміру.
-                    System.out.println("X = " + Arrays.toString(compareRows(a, b))); // Друкуємо логічний результат числами 0 і 1.
+                case 3 -> {
+                    int n = Input.integer("Розмір матриць (1..15): ", 1, 15);
+                    double[][] a = matrix("A", n);
+                    double[][] b = matrix("B", n);
+                    System.out.println("X = " + Arrays.toString(compareRows(a, b)));
                 }
-                case 4 -> System.out.println(transform(Input.text("Текст: "))); // Читаємо й перетворюємо цілий рядок.
+                case 4 -> System.out.println(transform(Input.text("Текст: ")));
             }
-        // catch — аналог except у Python: ця гілка виконується лише після відповідної помилки в try. e — об’єкт
-        // винятку, getMessage() дає його пояснення; вертикальна риска між типами дозволяє одним блоком обробити
-        // кілька видів помилок.
-        } catch (IllegalArgumentException | ArithmeticException | IllegalStateException e) { // Обробляємо помилки даних та завершення вводу.
-            System.out.println("Помилка: " + e.getMessage()); // Пояснюємо причину без аварійного стеку викликів.
+        // catch (Тип1 | Тип2 e) — один обробник для кількох типів винятків.
+        } catch (IllegalArgumentException | ArithmeticException | IllegalStateException e) {
+            System.out.println("Помилка: " + e.getMessage());
         }
     }
 }

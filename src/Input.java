@@ -1,56 +1,35 @@
-import java.util.Scanner; // Scanner читає введені користувачем рядки з консолі.
-// class описує тип об’єктів; new створює конкретний об’єкт і викликає його конструктор. public робить клас
-// доступним ззовні; final у заголовку класу, якщо він є, забороняє створювати підкласи, але сам по собі не робить
-// поля незмінними.
-public final class Input { // Допоміжний клас об'єднує перевірене консольне введення.
-    // private забороняє прямий доступ до поля з інших класів. final дозволяє присвоїти поле лише один раз; для
-    // посилання це заборона замінити об’єкт, а не заборона змінювати його вміст, якщо сам об’єкт змінний.
-    private static final Scanner IN = new Scanner(System.in); // Один Scanner запобігає конфліктам читання System.in.
-    // static означає, що метод належить класу: його можна викликати без створення об’єкта. public дозволяє виклик
-    // з інших класів, private обмежує використання цим класом; тип перед назвою задає результат, а void означає
-    // відсутність значення для повернення.
-    public static String text(String prompt) { // Метод повертає весь рядок, включно з пробілами всередині.
-        System.out.print(prompt); // Виводимо запрошення без переходу на новий рядок.
-        // throw — аналог raise у Python: негайно припиняємо звичайний хід методу й передаємо об’єкт помилки
-        // найближчому відповідному catch. new створює виняток, а текст конструктора пояснює причину користувачу.
-        if (!IN.hasNextLine()) throw new IllegalStateException("Введення завершено."); // EOF припиняє читання, щоб не утворився нескінченний цикл.
-        return IN.nextLine(); // Зчитуємо рядок разом із переходом, але повертаємо текст без переходу.
+import java.util.Scanner;
+// final class — від цього класу не можна успадковуватися.
+public final class Input {
+    // private — поле закрите ззовні; final забороняє переприсвоєння, але не зміну вмісту об’єкта.
+    private static final Scanner IN = new Scanner(System.in);
+    // static — виклик без об’єкта; public — доступ ззовні, private — лише в класі; void — без результату.
+    public static String text(String prompt) {
+        System.out.print(prompt);
+        if (!IN.hasNextLine()) throw new IllegalStateException("Введення завершено.");
+        return IN.nextLine();
     }
-    public static int integer(String prompt, int min, int max) { // Межі min і max включені в допустимий діапазон.
-        while (true) { // Повторюємо запит доти, доки користувач не введе коректне число.
-            try { // Відокремлюємо успішний розбір від помилки формату.
-                // Integer.parseInt перетворює текст у примітивний int, подібно до int(text) у Python. Некоректний
-                // текст або число за межами -2147483648..2147483647 спричиняє NumberFormatException; тип змінної в
-                // Java при цьому залишається фіксованим.
-                // trim() повертає рядок без звичайних крайніх пробілів і символів із кодами до U+0020;
-                // оригінальний String не змінюється. Це близько до strip() у Python, але набір прибраних символів
-                // не цілком однаковий.
-                int value = Integer.parseInt(text(prompt).trim()); // Видаляємо крайні пробіли й перетворюємо рядок на int.
-                if (value < min || value > max) throw new NumberFormatException(); // Відхиляємо також числа поза потрібними межами.
-                return value; // Коректне значення завершує метод.
-            // catch — аналог except у Python: ця гілка виконується лише після відповідної помилки в try. e —
-            // об’єкт винятку, getMessage() дає його пояснення; вертикальна риска між типами дозволяє одним блоком
-            // обробити кілька видів помилок.
-            } catch (NumberFormatException e) { // Ловимо неправильне число та переповнення int.
-                System.out.println("Потрібне ціле число від " + min + " до " + max); // Пояснюємо користувачу обмеження.
+    public static int integer(String prompt, int min, int max) {
+        while (true) {
+            try {
+                // parseInt/parseDouble перетворюють текст на число; помилка формату — NumberFormatException.
+                int value = Integer.parseInt(text(prompt).trim());
+                if (value < min || value > max) throw new NumberFormatException();
+                return value;
+            } catch (NumberFormatException e) {
+                System.out.println("Потрібне ціле число від " + min + " до " + max);
             }
         }
     }
-    public static double real(String prompt) { // Метод читає скінченне дійсне число.
-        while (true) { // Невдалий ввід не завершує програму.
-            try { // Спробуємо перетворити поточний рядок.
-                // Double.parseDouble перетворює рядок у 64-бітне дробове число double, близький аналог float(text)
-                // у Python. Десятковий роздільник має бути крапкою; replace коми, де він є, робить введення
-                // зручнішим.
-                double value = Double.parseDouble(text(prompt).trim().replace(',', '.')); // Приймаємо і кому, і крапку як десятковий роздільник.
-                // Double.isFinite(...) повертає true лише для звичайного скінченного числа; ! заперечує результат.
-                // double може містити NaN («не число») і ±Infinity, тому успішний parseDouble ще не гарантує
-                // придатність числа для формули. У Python аналог — math.isfinite(x); ця перевірка не перевіряє
-                // точність округлення.
-                if (!Double.isFinite(value)) throw new NumberFormatException(); // NaN та нескінченності не є допустимими вхідними даними.
-                return value; // Повертаємо прочитане число.
-            } catch (NumberFormatException e) { // Обробляємо невдале перетворення.
-                System.out.println("Введіть скінченне число."); // Повідомляємо про спосіб виправлення.
+    public static double real(String prompt) {
+        while (true) {
+            try {
+                double value = Double.parseDouble(text(prompt).trim().replace(',', '.'));
+                // Double.isFinite відкидає NaN та ±Infinity; ! заперечує перевірку.
+                if (!Double.isFinite(value)) throw new NumberFormatException();
+                return value;
+            } catch (NumberFormatException e) {
+                System.out.println("Введіть скінченне число.");
             }
         }
     }
