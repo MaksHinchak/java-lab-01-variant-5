@@ -3,74 +3,78 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 public class Main {
     // static — виклик без об’єкта; public — доступ ззовні, private — лише в класі; void — без результату.
-    public static double expression(double x, double y) {
+    public static double expression(double x, double y) { // Обчислюємо xy + (x+y)^3/(x^2+y^2)*(x-y).
         double denominator = x * x + y * y;
-        if (denominator == 0) throw new ArithmeticException("x та y не можуть одночасно бути нулями.");
+        // throw передає помилку в catch; new створює об’єкт винятку з повідомленням.
+        if (denominator == 0) throw new ArithmeticException("x та y не можуть одночасно бути нулями."); // Перевіряємо область визначення.
         double value = x * y + Math.pow(x + y, 3) / denominator * (x - y);
         // Double.isFinite відкидає NaN та ±Infinity; ! заперечує перевірку.
-        if (!Double.isFinite(value)) throw new ArithmeticException("Числа завеликі для double.");
+        if (!Double.isFinite(value)) throw new ArithmeticException("Числа завеликі для double."); // Виявляємо числове переповнення.
         return value;
     }
-    public static double[] averages(double[] a) {
+    public static double[] averages(double[] a) { // Кожен елемент результату є середнім усіх a, крім поточного.
         // .length — довжина масиву без дужок; для String — length(), для колекції — size().
-        if (a.length < 2 || a.length > 200) throw new IllegalArgumentException("Потрібно 2..200 чисел.");
+        // && — «і», || — «або»; праву умову перевіряють лише за потреби.
+        if (a.length < 2 || a.length > 200) throw new IllegalArgumentException("Потрібно 2..200 чисел."); // Для одного елемента середнє решти не визначене.
         // new тип[n] — масив незмінної довжини; числові елементи спочатку 0, посилання — null.
         double[] b = new double[a.length];
         // for (початок; умова; крок); i++ збільшує лічильник після проходу.
-        for (int i = 0; i < a.length; i++) {
-            for (int j = 0; j < a.length; j++) {
-                if (j != i) b[i] += a[j] / (a.length - 1);
+        for (int i = 0; i < a.length; i++) { // Обчислюємо результат окремо для кожного індексу i.
+            for (int j = 0; j < a.length; j++) { // Переглядаємо всі можливі доданки.
+                if (j != i) b[i] += a[j] / (a.length - 1); // Пропускаємо a[i]; попереднє ділення зменшує ризик переповнення суми.
             }
         }
         return b;
     }
-    public static int[] compareRows(double[][] a, double[][] b) {
+    public static int[] compareRows(double[][] a, double[][] b) { // Для кожного рядка перевіряємо строгі попарні нерівності A > B.
         int[] result = new int[a.length];
-        for (int i = 0; i < a.length; i++) {
+        for (int i = 0; i < a.length; i++) { // Зовнішній цикл перебирає рядки.
             result[i] = 1;
-            for (int j = 0; j < a[i].length; j++) {
-                if (a[i][j] <= b[i][j]) result[i] = 0;
+            for (int j = 0; j < a[i].length; j++) { // Внутрішній цикл перебирає стовпці поточного рядка.
+                if (a[i][j] <= b[i][j]) result[i] = 0; // Навіть одна рівність або менше значення спростовує умову.
             }
         }
         return result;
     }
-    public static String transform(String text) {
+    public static String transform(String text) { // Вилучаємо попередні входження останньої літери кожного слова.
         // Pattern — regex; matcher(text) створює пошук у тексті; \p{L}+ знаходить Unicode-літери.
         Matcher matcher = Pattern.compile("\\p{L}+").matcher(text);
         // StringBuilder — змінний буфер тексту; append додає частини, toString дає готовий String.
+        // new Клас(...) створює об’єкт і викликає його конструктор.
         StringBuilder result = new StringBuilder();
         int end = 0;
         // find переходить до наступного збігу; group дає текст, start/end — його межі.
-        while (matcher.find()) {
+        while (matcher.find()) { // Шукаємо чергове слово в початковому тексті.
             // append(text, від, до) копіює проміжок із невключною правою межею.
             result.append(text, end, matcher.start());
             // codePoints().toArray() дає int[] кодів Unicode, не окремі UTF-16 char; це не потік виконання.
             int[] letters = matcher.group().codePoints().toArray();
             int last = letters[letters.length - 1];
-            for (int i = 0; i < letters.length - 1; i++) {
+            for (int i = 0; i < letters.length - 1; i++) { // Перевіряємо лише літери до останньої.
                 // appendCodePoint додає символ за Unicode-кодом; append(int) додав би цифри числа.
-                if (letters[i] != last) result.appendCodePoint(letters[i]);
+                if (letters[i] != last) result.appendCodePoint(letters[i]); // Зберігаємо літери, які точно не збігаються з останньою; регістр враховується.
             }
             result.appendCodePoint(last);
             end = matcher.end();
         }
+        // substring(від) повертає частину рядка від індексу до кінця.
         return result.append(text.substring(end)).toString();
     }
-    private static double[][] matrix(String name, int n) {
+    private static double[][] matrix(String name, int n) { // Читаємо квадратну матрицю заданого розміру.
         // double[][] — масив окремих рядків; індекси [рядок][стовпець].
         double[][] values = new double[n][n];
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) values[i][j] = Input.real(name + "[" + i + "][" + j + "]= ");
+        for (int i = 0; i < n; i++) { // Перебираємо рядки, індексація починається з нуля.
+            for (int j = 0; j < n; j++) values[i][j] = Input.real(name + "[" + i + "][" + j + "]= "); // Читаємо одну клітинку.
         }
         return values;
     }
     // main — точка входу; String[] args містить аргументи запуску без назви програми.
-    public static void main(String[] args) {
-        try {
+    public static void main(String[] args) { // JVM починає виконання з цього методу.
+        try { // Помилки області визначення показуємо зрозумілим текстом.
             int task = Input.integer("Завдання (1 - вираз, 2 - масив, 3 - матриці, 4 - текст): ", 1, 4);
             // switch зі стрілками -> виконує лише вибрану гілку; break не потрібен.
-            switch (task) {
-                case 1 -> {
+            switch (task) { // Виконуємо тільки вибрану гілку.
+                case 1 -> { // Демонструємо всі три поєднання типів з умови.
                     double x = Input.real("Дійсне x: ");
                     double y = Input.real("Дійсне y: ");
                     double result = expression(x, y);
@@ -80,27 +84,28 @@ public class Main {
                     System.out.println("int -> double: " + expression(ix, iy));
                     // умова ? a : b — вибір значення: a, якщо true, інакше b.
                     double truncated = result < 0 ? Math.ceil(result) : Math.floor(result);
-                    if (truncated < Integer.MIN_VALUE || truncated > Integer.MAX_VALUE) throw new ArithmeticException("Результат не вміщується в int.");
+                    if (truncated < Integer.MIN_VALUE || truncated > Integer.MAX_VALUE) throw new ArithmeticException("Результат не вміщується в int."); // Не допускаємо мовчазного насичення під час cast.
                     // (int) відкидає дробову частину до нуля; int обмежений 32 бітами.
                     System.out.println("double -> int: " + (int) result);
                 }
-                case 2 -> {
+                case 2 -> { // Задача про середні арифметичні без поточного елемента.
                     int n = Input.integer("Кількість елементів (2..200): ", 2, 200);
                     double[] a = new double[n];
-                    for (int i = 0; i < n; i++) a[i] = Input.real("a[" + i + "]= ");
+                    for (int i = 0; i < n; i++) a[i] = Input.real("a[" + i + "]= "); // Заповнюємо всі елементи.
                     // Arrays.toString друкує елементи; звичайний println масиву їх не показує.
                     System.out.println("B = " + Arrays.toString(averages(a)));
                 }
-                case 3 -> {
+                case 3 -> { // Задача про порівняння рядків двох матриць.
                     int n = Input.integer("Розмір матриць (1..15): ", 1, 15);
                     double[][] a = matrix("A", n);
                     double[][] b = matrix("B", n);
                     System.out.println("X = " + Arrays.toString(compareRows(a, b)));
                 }
-                case 4 -> System.out.println(transform(Input.text("Текст: ")));
+                case 4 -> System.out.println(transform(Input.text("Текст: "))); // Читаємо й перетворюємо цілий рядок.
             }
         // catch (Тип1 | Тип2 e) — один обробник для кількох типів винятків.
-        } catch (IllegalArgumentException | ArithmeticException | IllegalStateException e) {
+        // catch (Тип e) перехоплює виняток із try; e.getMessage() повертає його повідомлення.
+        } catch (IllegalArgumentException | ArithmeticException | IllegalStateException e) { // Обробляємо помилки даних та завершення вводу.
             System.out.println("Помилка: " + e.getMessage());
         }
     }
